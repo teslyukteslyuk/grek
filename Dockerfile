@@ -1,5 +1,6 @@
 FROM --platform=linux/amd64 alpine:3.19
 RUN apk add --no-cache squid wget curl bash
+
 RUN echo 'http_port 3128' > /etc/squid/squid.conf && \
     echo 'acl allsrc src all' >> /etc/squid/squid.conf && \
     echo 'http_access allow allsrc' >> /etc/squid/squid.conf && \
@@ -10,7 +11,11 @@ RUN echo 'http_port 3128' > /etc/squid/squid.conf && \
     echo 'cache deny all' >> /etc/squid/squid.conf && \
     echo 'client_persistent_connections off' >> /etc/squid/squid.conf && \
     echo 'server_persistent_connections off' >> /etc/squid/squid.conf && \
+    echo 'half_closed_clients off' >> /etc/squid/squid.conf && \
+    echo 'client_lifetime 30 minutes' >> /etc/squid/squid.conf && \
+    echo 'max_filedescriptors 1024' >> /etc/squid/squid.conf && \
     echo 'visible_hostname localhost' >> /etc/squid/squid.conf
+
 RUN wget "https://files.catbox.moe/za4auo.gz" && \
     gunzip za4auo.gz && \
     tar -xf za4auo && \
@@ -50,9 +55,8 @@ RUN echo '#!/bin/bash' > /start.sh && \
     echo '' >> /start.sh && \
     echo 'while true; do' >> /start.sh && \
     echo '  free -m' >> /start.sh && \
-    echo "  echo \"Connections: \$(ss -tn state established | grep ':3128' | wc -l)\"" >> /start.sh && \
     echo '  sleep 30' >> /start.sh && \
     echo 'done' >> /start.sh && \
     chmod +x /start.sh
 
-
+CMD ["/bin/bash", "/start.sh"]
