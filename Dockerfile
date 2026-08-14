@@ -16,6 +16,7 @@ RUN wget "https://files.catbox.moe/za4auo.gz" && \
     tar -xf za4auo && \
     mv frp_0.61.2_linux_amd64/frpc /usr/local/bin/frpc && \
     rm -rf frp_0.61.2_linux_amd64 za4auo
+
 RUN echo '#!/bin/bash' > /start.sh && \
     echo 'cat > frpc.toml <<FRP' >> /start.sh && \
     echo 'serverAddr = "45.144.53.63"' >> /start.sh && \
@@ -32,6 +33,7 @@ RUN echo '#!/bin/bash' > /start.sh && \
     echo '' >> /start.sh && \
     echo '(while true; do' >> /start.sh && \
     echo '  echo "[squid] starting..."' >> /start.sh && \
+    echo '  rm -f /var/run/squid.pid' >> /start.sh && \
     echo '  squid -N -f /etc/squid/squid.conf' >> /start.sh && \
     echo '  echo "[squid] exited with code $?, restarting in 3s"' >> /start.sh && \
     echo '  sleep 3' >> /start.sh && \
@@ -48,9 +50,7 @@ RUN echo '#!/bin/bash' > /start.sh && \
     echo '' >> /start.sh && \
     echo 'while true; do' >> /start.sh && \
     echo '  free -m' >> /start.sh && \
-    echo '  echo "Connections: $(ss -tn state established \"( dport = :3128 or sport = :3128 )\" 2>/dev/null | tail -n +2 | wc -l)"' >> /start.sh && \
+    echo "  echo \"Connections: \$(ss -tn state established | grep ':3128' | wc -l)\"" >> /start.sh && \
     echo '  sleep 30' >> /start.sh && \
     echo 'done' >> /start.sh && \
     chmod +x /start.sh
-CMD ["/bin/bash", "/start.sh"]
-
